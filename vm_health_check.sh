@@ -1,54 +1,38 @@
 #!/bin/bash
 
-# Script to check the health of a VM based on CPU, memory, and disk space utilization
+# vm_health_check.sh
 
-# Function to check health status
-check_health() {
-    local cpu_util=$(awk -F" " '/^cpu / {printf "%d", ($2+$4)*100/($2+$4+$5)}' /proc/stat)
-    local mem_util=$(free | grep Mem | awk '{printf "%d", $3/$2 * 100.0}')
-    local disk_util=$(df / | grep / | awk '{printf "%d", $3/$2 * 100.0}')
+# Function to display VM health check
+check_vm_health() {
+    local cpu_usage=
+    local memory_usage=
+    local disk_usage=
+    local health_status=""
 
-    local health="healthy"
+    # Simulating the health check logic
+    cpu_usage=$(echo "$(vmstat 1 2 | tail -n 1 | awk '{print $13}')")
+    memory_usage=$(free | grep Mem | awk '{print $3/$2 * 100.0}')
+    disk_usage=$(df | grep /dev/sda1 | awk '{print $5}' | sed 's/%//')
 
-    # Determine health status
-    if [ $cpu_util -gt 60 ] || [ $mem_util -gt 60 ] || [ $disk_util -gt 60 ]; then
-        health="unhealthy"
-    fi
-
-    echo $health
-}
-
-# Function to explain health status
-explain_health() {
-    local cpu_util=$(awk -F" " '/^cpu / {printf "%d", ($2+$4)*100/($2+$4+$5)}' /proc/stat)
-    local mem_util=$(free | grep Mem | awk '{printf "%d", $3/$2 * 100.0}')
-    local disk_util=$(df / | grep / | awk '{printf "%d", $3/$2 * 100.0}')
-
-    local explanation=
-
-    if [ $cpu_util -gt 60 ]; then
-        explanation="CPU utilization is at $cpu_util% which is above the healthy threshold."
-    fi
-    if [ $mem_util -gt 60 ]; then
-        explanation+=" Memory utilization is at $mem_util% which is above the healthy threshold."
-    fi
-    if [ $disk_util -gt 60 ]; then
-        explanation+=" Disk utilization is at $disk_util% which is above the healthy threshold."
-    fi
-
-    if [ -z "$explanation" ]; then
-        echo "All parameters are within healthy limits."
+    if [ $cpu_usage -lt 75 ] && [ $(echo "$memory_usage < 75" | bc) -eq 1 ] && [ $disk_usage -lt 75 ]; then
+        health_status="Healthy"
     else
-        echo $explanation
+        health_status="Unhealthy"
     fi
+
+    # Display formatted utilization report
+    echo "VM Health Check Report:"
+    echo "-----------------------------------"
+    echo "CPU Utilization: ${cpu_usage}%"
+    echo "Memory Utilization: ${memory_usage}%"
+    echo "Disk Utilization: ${disk_usage}%"
+    echo "Health Status: $health_status"
+    echo "-----------------------------------"
 }
 
-# Main script logic
-health_status=$(check_health)
-
-if [ "$1" == "explain" ]; then
-    echo "Health status: $health_status"
-    explain_health
+# Main script execution
+if [[ "$1" == "explain" ]]; then
+    check_vm_health
 else
-    echo "Health status: $health_status"
+    echo "Usage: ./vm_health_check.sh explain"
 fi
