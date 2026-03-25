@@ -1,38 +1,37 @@
 #!/bin/bash
 
-# vm_health_check.sh
-
-# Function to display VM health check
+# Function to display VM Health
 check_vm_health() {
-    local cpu_usage=
-    local memory_usage=
-    local disk_usage=
-    local health_status=""
+    # Logic to check CPU, Memory, and Disk utilization
+    cpu_util=$(get_cpu_utilization)
+    mem_util=$(get_memory_utilization)
+    disk_util=$(get_disk_utilization)
 
-    # Simulating the health check logic
-    cpu_usage=$(echo "$(vmstat 1 2 | tail -n 1 | awk '{print $13}')")
-    memory_usage=$(free | grep Mem | awk '{print $3/$2 * 100.0}')
-    disk_usage=$(df | grep /dev/sda1 | awk '{print $5}' | sed 's/%//')
+    echo "CPU Utilization: ${cpu_util}%"
+    echo "Memory Utilization: ${mem_util}%"
+    echo "Disk Utilization: ${disk_util}%"
+}
 
-    if [ $cpu_usage -lt 75 ] && [ $(echo "$memory_usage < 75" | bc) -eq 1 ] && [ $disk_usage -lt 75 ]; then
-        health_status="Healthy"
-    else
-        health_status="Unhealthy"
-    fi
+# Function to check health of VMs
+get_cpu_utilization() {
+    # Dummy function: Replace with actual command to get CPU utilization
+    echo 75
+}
 
-    # Display formatted utilization report
-    echo "VM Health Check Report:"
-    echo "-----------------------------------"
-    echo "CPU Utilization: ${cpu_usage}%"
-    echo "Memory Utilization: ${memory_usage}%"
-    echo "Disk Utilization: ${disk_usage}%"
-    echo "Health Status: $health_status"
-    echo "-----------------------------------"
+get_memory_utilization() {
+    # Dummy function: Replace with actual command to get Memory utilization
+    echo 60
+}
+
+get_disk_utilization() {
+    # Dummy function: Replace with actual command to get Disk utilization
+    echo 80
 }
 
 # Main script execution
-if [[ "$1" == "explain" ]]; then
+if [[ $1 == "explain" ]]; then
+    echo "Displaying utilization percentages for healthy and unhealthy VMs:"
     check_vm_health
 else
-    echo "Usage: ./vm_health_check.sh explain"
+    echo "Usage: $0 explain"
 fi
